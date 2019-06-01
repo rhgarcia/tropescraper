@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+import logging
+import sys
+import os
+
+from tropescraper.tvtropes_scraper import TVTropesScraper
+
+if len(sys.argv) != 2:
+    command = sys.argv[0].split(os.sep)[-1]
+    print(f'Error: Invalid usage\nPlease execute \'{command} <target_file.json>\'')
+    sys.exit(1)
+
+file_name = sys.argv[1]
+
+logging.basicConfig(level=logging.INFO)
+scraper = TVTropesScraper()
+tropes = scraper.get_tropes()
+scraper.export_to_json(file_name)
+scraper.log_summary()
