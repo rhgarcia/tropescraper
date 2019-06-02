@@ -4,10 +4,11 @@ import logging
 import os
 from datetime import datetime
 from time import sleep, ctime
+from collections import namedtuple
 
 import requests
 
-from tropescraper.cache_information import CacheInformation
+CacheInformation = namedtuple('CacheInformation', ['size', 'files_count', 'creation_date'])
 
 
 class WebPageRetriever(object):

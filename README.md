@@ -17,3 +17,4 @@ Run it with
 
     bin/scrape-tvtropes
     
+It will take a good while while it scrapes ~12k films.
