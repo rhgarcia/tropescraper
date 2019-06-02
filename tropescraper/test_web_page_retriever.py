@@ -8,3 +8,9 @@ class TestWebPageRetriever(unittest.TestCase):
 
     def test_class(self):
         self.assertIsInstance( self.scraper, WebPageRetriever, "Correct class" )
+
+    def test_retrieve(self):
+        content = self.scraper.retrieve()
+        self.assertIsNot( content, "",  "Retrieves something")
+        content2 = self.scraper.retrieve()
+        self.assertIs( content, conten2, "Retrieves from cache")
