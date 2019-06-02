@@ -1,2 +1,5 @@
 # tropescraper
-A tropes scraper
+
+A scraper for the website TV tropes.
+
+
