@@ -1,0 +1,5 @@
+tropescraper.egg-info/
+__pycache__
+scraper_cache/
+*~
+.cache
