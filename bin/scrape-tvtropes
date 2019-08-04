@@ -2,14 +2,12 @@
 
 import logging
 import sys
-import os
 
 from tropescraper.tvtropes_scraper import TVTropesScraper
 
 if len(sys.argv) != 2:
     file_name = "tvtropes.json"
 else:
-    
     file_name = sys.argv[1]
 
 logging.basicConfig(level=logging.INFO)

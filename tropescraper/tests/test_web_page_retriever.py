@@ -1,16 +1,10 @@
 import unittest
-from tropescraper.web_page_retriever import WebPageRetriever
 
-class TestWebPageRetriever(unittest.TestCase):
+from tropescraper.adaptors.web_page_retriever import WebPageRetriever
 
-    def setUp(self):
-        self.scraper = WebPageRetriever(0.5,"https://tvtropes.org/pmwiki/pmwiki.php/Film/FantasticBeastsAndWhereToFindThem","/tmp")
 
-    def test_class(self):
-        self.assertIsInstance( self.scraper, WebPageRetriever, "Correct class" )
-
-    def test_retrieve(self):
-        content = self.scraper.retrieve()
-        self.assertNotEqual( content, "",  "Retrieves something")
-        content2 = self.scraper.retrieve()
-        self.assertEqual( content, content2, "Retrieves from cache")
+class WebPageRetrieverTestCase(unittest.TestCase):
+    def test_retrieve_when_called_then_returns_the_page(self):
+        retriever = WebPageRetriever(wait_time_between_calls_in_seconds=0)
+        content = retriever.retrieve('https://tvtropes.org/pmwiki/pmwiki.php/Main/Film')
+        self.assertIn('Index of Films', content, 'Should\'ve downloaded the page')

@@ -1,66 +1,46 @@
 import datetime
 import logging
-import os
 from collections import OrderedDict
-
-from lxml import html
-
-from tropescraper.web_page_retriever import WebPageRetriever
+from tropescraper.common.object_factory import ObjectFactory
+from tropescraper.interfaces.cache_interface import CacheInterface
+from tropescraper.interfaces.page_parser_interface import PageParserInterface
+from tropescraper.interfaces.web_page_retriever_interface import WebPageRetrieverInterface
 
 
 class TVTropesScraper(object):
-    MAIN_SEARCH = 'https://tvtropes.org/pmwiki/pmwiki.php/Main/Film'
-    BASE_FILM_URL = 'https://tvtropes.org/pmwiki/pmwiki.php/Film/'
-    BASE_MAIN_URL = 'https://tvtropes.org/pmwiki/pmwiki.php/Main/'
-
-    MAIN_RESOURCE = '/Main/'
-    FILM_RESOURCE = '/Film/'
-    LINK_SELECTOR = 'a'
-    LINK_SELECTOR_INSIDE_ARTICLE = '#main-article ul li a'
-    LINK_ADDRESS_SELECTOR = 'href'
-
-    DEFAULT_CACHE_PATH = './scraper_cache'
-    DEFAULT_WAIT_TIME = 0.5
-
     logger = logging.getLogger(__name__)
 
-    def __init__(self, wait_time_between_calls_in_seconds=DEFAULT_WAIT_TIME, cache_path=DEFAULT_CACHE_PATH):
+    def __init__(self, wait_time_between_calls_in_seconds=None, cache_path=None):
         self.wait_time_between_calls_in_seconds = wait_time_between_calls_in_seconds
         self.cache_path = cache_path
+
         self.films = None
         self.tropes = None
-        self.urls = None
         self.tropes_by_film = OrderedDict()
         self.latest_log_datetime = None
+        self.parser = ObjectFactory().get_instance(PageParserInterface)
 
     def get_tropes(self):
         self.logger.info('Process started\n* Remember that you can stop and restart at any time.\n'
                          '** Please, remove manually the cache folder when you are done\n')
 
-        self._build_cache_directory()
         self._extract_film_ids()
         self._extract_tropes()
 
         return self.tropes_by_film
 
-    def _build_cache_directory(self):
-        if not os.path.isdir(self.cache_path):
-            self.logger.info(f'Building cache directory: {self.cache_path}')
-            os.makedirs(self.cache_path)
-        else:
-            self.logger.info(f'Cache directory found: {self.cache_path}')
-
     def _extract_film_ids(self):
         self.logger.info('Scraping film ids...')
 
         self.films = set()
-        self.urls = set()
-
-        category_ids = self._get_links_from_url(self.MAIN_SEARCH, self.MAIN_RESOURCE)
+        starting_url = self.parser.get_starting_url()
+        page = self._retrieve(starting_url)
+        category_ids = self.parser.extract_categories(page)
 
         for category_id in category_ids:
-            url = self.BASE_MAIN_URL + category_id
-            film_ids = self._get_links_from_url(url, self.FILM_RESOURCE)
+            category_url = self.parser.get_category_url(category_id)
+            page = self._retrieve(category_url)
+            film_ids = self.parser.extract_films(page)
             self.films.update(film_ids)
 
         self.logger.info(f'Found {len(self.films)} films')
@@ -75,33 +55,50 @@ class TVTropesScraper(object):
         self.logger.debug(f'Found {len(sorted_films)} films')
 
         for counter, film in enumerate(sorted_films):
-            self._get_tropes_by_film(film)
+            url = self.parser.get_film_url(film)
+            page = self._retrieve(url)
+            trope_ids = self.parser.extract_tropes(page)
+
+            self.logger.debug(f'Film {film} ({len(trope_ids)} tropes): {trope_ids}')
+
+            self.tropes.update(trope_ids)
+            self.tropes_by_film[film] = sorted(trope_ids)
 
             if self._should_log_status():
-                self.logger.info(f'Status: {counter + 1}/{len(sorted_films)} films scraped')
-                self.latest_log_datetime = datetime.datetime.now()
+                self._log_status(counter, sorted_films)
 
-    def _get_tropes_by_film(self, film):
-        url = self.BASE_FILM_URL + film
-        trope_ids = self._get_links_from_url(url, self.MAIN_RESOURCE, only_article=True)
+    def _should_log_status(self):
+        now = datetime.datetime.now()
+        return self.latest_log_datetime is None or now - self.latest_log_datetime > datetime.timedelta(seconds=5)
 
-        self.logger.debug(f'Film {film} ({len(trope_ids)} tropes): {trope_ids}')
+    def _log_status(self, counter, sorted_films):
+        self.logger.info(f'Status: {counter + 1}/{len(sorted_films)} films scraped')
+        self.latest_log_datetime = datetime.datetime.now()
 
-        self.tropes.update(trope_ids)
-        self.tropes_by_film[film] = sorted(trope_ids)
+    def _retrieve(self, url):
+        cache = self._get_cache()
+        content = cache.get(url)
+        if content is None:
+            retriever = self._get_retriever()
+            content = retriever.retrieve(url)
+            cache.set(url, content)
 
-    def _get_links_from_url(self, url, link_type, only_article=False):
-        retriever = WebPageRetriever(self.wait_time_between_calls_in_seconds, url, self.cache_path)
-        page = retriever.retrieve()
-        tree = html.fromstring(page)
-        selector = self.LINK_SELECTOR_INSIDE_ARTICLE if only_article else self.LINK_SELECTOR
-        links = [element.get(self.LINK_ADDRESS_SELECTOR) for element in tree.cssselect(selector)
-                 if element.get(self.LINK_ADDRESS_SELECTOR)]
-        return [link.split('/')[-1] for link in links if link_type in link and 'action' not in link]
+        return content
 
-    def get_info(self):
-        retriever = WebPageRetriever(self.wait_time_between_calls_in_seconds, None, self.cache_path)
-        return retriever.get_info()
+    def _get_cache(self):
+        if self.cache_path is None:
+            return ObjectFactory().get_instance(CacheInterface)
+        return ObjectFactory().get_instance(CacheInterface, self.cache_path)
+
+    def _get_retriever(self):
+        if self.wait_time_between_calls_in_seconds is None:
+            return ObjectFactory().get_instance(WebPageRetrieverInterface)
+        return ObjectFactory().get_instance(WebPageRetrieverInterface, self.wait_time_between_calls_in_seconds)
+
+    @staticmethod
+    def get_info():
+        file_cache = ObjectFactory().get_instance(CacheInterface)
+        return file_cache.get_info()
 
     def export_to_json(self, filename):
         import json
@@ -113,7 +110,3 @@ class TVTropesScraper(object):
         films_count = len(self.tropes_by_film.keys())
         tropes_count = len(self.tropes)
         self.logger.info(f'Summary:\n- Films: {films_count}\n- Tropes: {tropes_count}\n- Cache: {self.get_info()}')
-
-    def _should_log_status(self):
-        now = datetime.datetime.now()
-        return self.latest_log_datetime is None or now - self.latest_log_datetime > datetime.timedelta(seconds=5)
