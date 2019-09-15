@@ -1,8 +1,16 @@
+from os import path
+
 from setuptools import setup
 
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_file:
+    long_description = readme_file.read()
+
 setup(name='tropescraper',
-      version='1.0.1',
+      version='1.0.2',
       description='A TvTropes scrapper',
+      long_description=long_description,
+      long_description_content_type='text/markdown',
       url='https://github.com/raiben/tropescraper',
       author='Rubén H. García',
       author_email='raiben@gmail.com',

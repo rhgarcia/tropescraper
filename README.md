@@ -54,8 +54,8 @@ with a JSON content in the following format:
 ### The log
 
 
-The output should look something close to:
-```bash
+The output should look like this:
+```log
 INFO:tropescraper.tvtropes_scraper:Process started
 * Remember that you can stop and restart at any time.
 ** Please, remove manually the cache folder when you are done
@@ -90,7 +90,9 @@ anything goes bad :-) and it can be ignored.
 If you are a contributor and you want to work and improve the code
 you only need clone the project and install all the dependencies with:
 
-```
+```bash
+git clone https://github.com/raiben/tropescraper.git
+cd tropescraper
 pip install -r requirements.txt
 ```
 
