@@ -2,10 +2,8 @@ from typing import TypeVar, Type, List, Dict
 
 from tropescraper.adaptors.file_cache import FileCache
 from tropescraper.adaptors.file_store import FileStore
-from tropescraper.adaptors.tvtropes_parser import TVTropesParser
 from tropescraper.adaptors.web_page_retriever import WebPageRetriever
 from tropescraper.interfaces.cache_interface import CacheInterface
-from tropescraper.interfaces.page_parser_interface import PageParserInterface
 from tropescraper.interfaces.tropes_store_interface import TropesStoreInterface
 from tropescraper.interfaces.web_page_retriever_interface import WebPageRetrieverInterface
 
@@ -14,7 +12,6 @@ class ObjectFactory(object):
     DEFAULT_IMPLEMENTATION_MAP = {
         WebPageRetrieverInterface: WebPageRetriever,
         CacheInterface: FileCache,
-        PageParserInterface: TVTropesParser,
         TropesStoreInterface: FileStore,
     }
     MOCK_IMPLEMENTATION_MAP = {}
