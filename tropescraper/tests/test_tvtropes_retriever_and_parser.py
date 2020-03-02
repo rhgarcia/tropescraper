@@ -25,7 +25,7 @@ class TVTropesParserTestCase(unittest.TestCase):
         films = self.parser.extract_films(content)
         self.assertIn(self.SAMPLE_FILM, films, f'Should\'ve found the film {self.SAMPLE_FILM}')
 
-    def test_extract_categories_when_categories_page_retrieved_then_returns_the_tropes(self):
+    def test_extract_tropes_from_film_when_film_page_retrieved_then_returns_the_tropes(self):
         url = self.parser.get_film_url(self.SAMPLE_FILM)
         content = self.retriever.retrieve(url)
         tropes = self.parser.extract_tropes_from_film_page(content)

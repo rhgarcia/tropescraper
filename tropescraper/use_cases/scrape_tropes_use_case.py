@@ -1,7 +1,9 @@
 import datetime
 import logging
+import re
 import sys
 from collections import OrderedDict
+
 from tropescraper.common.object_factory import ObjectFactory
 from tropescraper.interfaces.cache_interface import CacheInterface
 from tropescraper.interfaces.page_parser_interface import PageParserInterface
@@ -17,6 +19,7 @@ class ScrapeTropesUseCase(object):
         self._file_name = file_name
         self.wait_time_between_calls_in_seconds = wait_time_between_calls_in_seconds
         self.cache_path = cache_path
+        self._initial_recursivity = 1000000
 
         self.films = None
         self._all_trope_urls = set()
@@ -31,6 +34,7 @@ class ScrapeTropesUseCase(object):
         self.object_factory = ObjectFactory
 
         self.parser = TVTropesParser()
+        self._cache = None
 
     def run(self):
         self._log_instructions()
@@ -94,7 +98,7 @@ class ScrapeTropesUseCase(object):
         self._all_trope_urls.add(starting_url)
 
         sys.setrecursionlimit(10 ** 6)
-        self.extract_all_tropes_in_page_recursively(page, 'tropes')
+        self.extract_all_tropes_in_page_recursively(page, 'tropes', recursivity_level=self._initial_recursivity)
         for film, tropes in self.tropes_by_film.items():
             self.tropes_by_film[film] = sorted(list(set(tropes)))
 
@@ -107,23 +111,26 @@ class ScrapeTropesUseCase(object):
     def _log_status(self, counter, total_elements_list=None, item_name_plural='films'):
         total = float('inf') if total_elements_list is None else len(total_elements_list)
 
-        self.logger.info(f'Status: {counter + 1}/{total} {item_name_plural} scraped')
+        values = list(map(lambda x: len(x), self.tropes_by_film.values()))
+        average = sum(values) / len(values)
+        self.logger.info(f'Status: {counter + 1}/{total} {item_name_plural} scraped. '
+                         f'Average tropes by film: {average}')
         self.latest_log_datetime = datetime.datetime.now()
 
     def _retrieve(self, url):
-        cache = self._get_cache()
-        content = cache.get(url)
+        if self._cache is None:
+            if self.cache_path is None:
+                self._cache = ObjectFactory().get_instance(CacheInterface)
+            else:
+                self._cache = ObjectFactory().get_instance(CacheInterface, self.cache_path)
+
+        content = self._cache.get(url)
         if content is None:
             retriever = self._get_retriever()
             content = retriever.retrieve(url)
-            cache.set(url, content)
+            self._cache.set(url, content)
 
         return content
-
-    def _get_cache(self):
-        if self.cache_path is None:
-            return ObjectFactory().get_instance(CacheInterface)
-        return ObjectFactory().get_instance(CacheInterface, self.cache_path)
 
     def _get_retriever(self):
         if self.wait_time_between_calls_in_seconds is None:
@@ -144,12 +151,19 @@ class ScrapeTropesUseCase(object):
         file_cache = ObjectFactory().get_instance(CacheInterface)
         return file_cache.get_info()
 
-    def extract_all_tropes_in_page_recursively(self, page, trope_name):
-        #self.logger.info("Entering ...")
-        links, films = self.parser.get_all_trope_links_and_paginations(page)
+    def extract_all_tropes_in_page_recursively(self, page, trope_name, recursivity_level):
+        recursivity_level -= 1
+
+        links, films = self.parser.get_all_trope_links_and_paginations(page, trope_name)
         for film in films:
             if film in self.tropes_by_film:
                 self.tropes_by_film[film].append(trope_name)
+
+        if self._should_log_status():
+            self._log_status(len(self._all_trope_urls), item_name_plural='tropes')
+
+        if recursivity_level <= 0:
+            return
 
         filtered_links = []
         for link in links:
@@ -161,14 +175,29 @@ class ScrapeTropesUseCase(object):
                 filtered_links.append(full_link)
                 self._all_trope_urls.add(full_link)
 
-        for full_link in filtered_links:
-            if 'CircularRedirect' not in full_link and 'ThisPageRedirectsToItself' not in full_link:
-                page = self._retrieve(full_link)
-                if page is not None:
-                    subtrope_name = full_link.split('/')[-1]
-                    self.extract_all_tropes_in_page_recursively(page, subtrope_name)
-
         if self._should_log_status():
             self._log_status(len(self._all_trope_urls), item_name_plural='tropes')
 
-        #self.logger.info("Exiting ...")
+        for full_link in filtered_links:
+            if 'CircularRedirect' in full_link or 'ThisPageRedirectsToItself' in full_link:
+                return []
+
+            matches = re.match('^.*/Main/([^/]+)(/.*)?$', full_link)
+            if not matches:
+                matches = re.match('^.*/pmwiki.php/([^/]+)/.*$', full_link)
+                if not matches:
+                    self.logger.warning('Could not get the trope name in url {}'.format(full_link))
+                    return
+
+            subtrope = matches.group(1)
+            category = full_link.split('/')[-1]
+            if (not self.parser.trope_name_is_media_type_to_ignore(subtrope)
+                    and not self.parser.trope_name_is_media_type_to_ignore(category)):
+
+                if subtrope != category and category in self.tropes_by_film:
+                    self.logger.info(f'URL encoded trope-film relation ({subtrope}=>{category}): {full_link}')
+                    self.tropes_by_film[category].append(subtrope)
+                else:
+                    page = self._retrieve(full_link)
+                    if page is not None:
+                        self.extract_all_tropes_in_page_recursively(page, subtrope, recursivity_level)

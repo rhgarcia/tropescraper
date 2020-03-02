@@ -14,6 +14,22 @@ class TVTropesParser(object):
     LINK_SELECTOR = 'a'
     LINK_SELECTOR_INSIDE_ARTICLE = '#main-article ul li a'
     LINK_ADDRESS_SELECTOR = 'href'
+    MEDIA_TYPES_NOT_TROPES = {'Advertising', 'AdvertisingCampaigns', 'Anime', 'AsianAnimation',
+                              'EasternEuropeanAnimation', 'WesternAnimation', 'PhotographyAndIllustration',
+                              'SequentialArt', 'MusicAndSoundEffects', 'AudioPlay', 'ConceptAlbum', 'AlbumsIndex',
+                              'OralTradition', 'Podcast', 'Radio', 'RockOperas', 'AnimatedFilms', 'FilmSeries',
+                              'Newsreel', 'ShortFilm', 'AlternateRealityGame', 'ARG', 'LARP', 'ParlorGames', 'Pinball',
+                              'TabletopGames', 'BoardGames', 'CardGames', 'CollectibleCardGame', 'DeckbuildingGame',
+                              'TabletopRPG', 'WarGaming', 'TabletopGames', 'VideoGames', 'Feelies', 'Machinima',
+                              'Machinomics', 'VisualNovel', 'TheInternet', 'Fora', 'FriendingNetwork', 'LetsPlay',
+                              'TheWikiRule', 'OnlineGames', 'VirtualWorlds', 'WebAnimation', 'WebComics', 'WebGames',
+                              'Blog', 'WebOriginal', 'WebOriginalFiction', 'WebSerialNovel', 'WebVideo', 'OtherSites',
+                              'PrintMedia', 'ComicBooks', 'Literature', 'LightNovels', 'Magazines', 'Manga', 'Manhua',
+                              'Manhwa', 'Newspapers', 'NewspaperComics', 'PictureBooks', 'SchoolStudyMedia',
+                              'SportingEvent', 'RecordedAndStandUpComedy', 'AnimatedShows', 'BroadcastLive',
+                              'TelevisionMovieIndex', 'Series', 'Theatre', 'Ballet', 'Opera', 'Vaudeville',
+                              'ThemeParks', 'Toys', 'FairyTale', 'FranchiseIndex', 'Legend', 'Mythology',
+                              'Analysis', 'UsefulNotes'}
 
     def get_films_starting_url(self):
         return self.FILM_MAIN_SEARCH
@@ -46,9 +62,14 @@ class TVTropesParser(object):
     def extract_films_from_trope_page(self, page):
         return self._get_links_from_page(page, self.FILM_RESOURCE, only_article=True)
 
-    def get_all_trope_links_and_paginations(self, page):
+    def get_all_trope_links_and_paginations(self, page, trope_name):
+        if self.trope_name_is_media_type_to_ignore(trope_name):
+            return [], []
+
         links = self._get_links_from_page(page, self.MAIN_RESOURCE, only_article=True, remove_link=False,
                                           sub_pages=False)
+        links += self._get_links_from_page(page, '.php/{}/'.format(trope_name), only_article=True, remove_link=False,
+                                           sub_pages=False)
         films = self.extract_films_from_trope_page(page)
         # TODO: retrieve paginations (see https://tvtropes.org/pmwiki/pmwiki.php/Main/BoxOfficeBomb)
         return links, films
@@ -63,3 +84,7 @@ class TVTropesParser(object):
         if sub_pages:
             filtered_links += [link for link in links if 'NumbersThrough' in link and 'action' not in link]
         return list(map(lambda x: x.split('/')[-1] if remove_link else x, filtered_links))
+
+    @classmethod
+    def trope_name_is_media_type_to_ignore(cls, trope_name):
+        return trope_name in cls.MEDIA_TYPES_NOT_TROPES
