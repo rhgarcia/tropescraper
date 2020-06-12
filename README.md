@@ -83,7 +83,7 @@ The assumptions above imply that the crawl is more intense now.
 
 Considering all the new relations discovered, the average number of tropes by film goes up to ~104.
 Whilst the number of tropes and films do not grow much (on 2020/03, 12567 films and 26969 tropes)
-the dataset doubles the dense¡ity in term of relations.
+the dataset doubles the density in term of relations.
 
 
 ** Manual checks:

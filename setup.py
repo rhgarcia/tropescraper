@@ -16,7 +16,7 @@ setup(name='tropescraper',
       author_email='raiben@gmail.com',
       license='LGPL',
       packages=['tropescraper', 'tropescraper.adaptors', 'tropescraper.common', 'tropescraper.entities',
-                'tropescraper.interfaces'],
+                'tropescraper.interfaces', 'tropescraper.use_cases', 'tropescraper.use_cases.parsers'],
       install_requires=['requests', 'lxml', 'cssselect'],
       scripts=['bin/scrape-tvtropes'],
       zip_safe=False)
