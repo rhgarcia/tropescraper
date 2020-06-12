@@ -1,6 +1,6 @@
 import unittest
 
-from tropescraper.adaptors.tvtropes_parser import TVTropesParser
+from tropescraper.use_cases.parsers.tvtropes_parser import TVTropesParser
 from tropescraper.adaptors.web_page_retriever import WebPageRetriever
 
 
@@ -14,7 +14,7 @@ class TVTropesParserTestCase(unittest.TestCase):
         self.retriever = WebPageRetriever(wait_time_between_calls_in_seconds=0)
 
     def test_extract_categories_when_starting_page_retrieved_then_returns_categories(self):
-        url = self.parser.get_starting_url()
+        url = self.parser.get_films_starting_url()
         content = self.retriever.retrieve(url)
         categories = self.parser.extract_categories(content)
         self.assertIn(self.SAMPLE_CATEGORY, categories, f'Should\'ve found the category {self.SAMPLE_CATEGORY}')
@@ -25,8 +25,8 @@ class TVTropesParserTestCase(unittest.TestCase):
         films = self.parser.extract_films(content)
         self.assertIn(self.SAMPLE_FILM, films, f'Should\'ve found the film {self.SAMPLE_FILM}')
 
-    def test_extract_categories_when_categories_page_retrieved_then_returns_the_tropes(self):
+    def test_extract_tropes_from_film_when_film_page_retrieved_then_returns_the_tropes(self):
         url = self.parser.get_film_url(self.SAMPLE_FILM)
         content = self.retriever.retrieve(url)
-        tropes = self.parser.extract_tropes(content)
+        tropes = self.parser.extract_tropes_from_film_page(content)
         self.assertIn(self.SAMPLE_TROPE, tropes, f'Should\'ve found the trope {self.SAMPLE_TROPE}')

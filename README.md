@@ -30,10 +30,15 @@ Try to execute
 scrape-tvtropes
 ```
 
-The script can take some hours to finish, but don't worry, 
+The script ~~can take some hours~~ can take a long time, from hours to days, 
+to finish, but don't worry, 
 it can be stopped at any moment because it relies in file cache, so
 it will not try to re-download the same page twice even in 
-different executions.
+different executions. You will notice because you will see 
+thousands of "Cache hits" with the format:
+```
+INFO:tropescraper.adaptors.file_cache:Cache hit for https://tvtropes.org/pmwiki/pmwiki.php/Main/RulesOfTheRoad
+```
 
 The script will create a folder in the same directory called `scraper_cache`
 with thousand of small compressed files. 
@@ -51,8 +56,50 @@ with a JSON content in the following format:
 }, 
 ```
 
-### The log
+### Dealing with unstructured data
 
+The first version of the script considered that:
+- all the film categories are listed in the ["Films"](https://tvtropes.org/pmwiki/pmwiki.php/Main/Film) section and
+- every film page includes a list of the tropes that can be found inside, for example, 
+["Raiders of the lost ark"](https://tvtropes.org/pmwiki/pmwiki.php/Film/RaidersOfTheLostArk)
+includes a links to tropes such as ["Animal Espionage"](https://tvtropes.org/pmwiki/pmwiki.php/Main/AnimalEspionage).
+
+It is "very" direct to build the films->tropes map and we got ~12567 films scraped with ~40 tropes on average.
+
+However, we discovered that some of the most popular tropes in DBTropes were missing 
+in tropescraper, and this is because of the unstructured nature of the wiki.
+
+The next version of the script considers that: 
+- all the trope-categories are hanging from the ["Tropes"](https://tvtropes.org/pmwiki/pmwiki.php/Main/Tropes) section or 
+a sub-page, in a recursive way, and
+- every trope page includes a list of the films that make use of it, for example,
+["Animal Espionage"](https://tvtropes.org/pmwiki/pmwiki.php/Main/AnimalEspionage) 
+includes a links to tropes such as ["Raiders of the lost ark"](https://tvtropes.org/pmwiki/pmwiki.php/Film/RaidersOfTheLostArk).
+- some tropes do not include the films directly, but through category subpages
+or paginated results hence the script needs to crawl pages that do not include "Main" 
+or "Film".
+
+The assumptions above imply that the crawl is more intense now.
+
+Considering all the new relations discovered, the average number of tropes by film goes up to ~104.
+Whilst the number of tropes and films do not grow much (on 2020/03, 12567 films and 26969 tropes)
+the dataset doubles the density in term of relations.
+
+
+** Manual checks:
+
+Due to the very nature of the wiki, it is hard to evaluate if we are missing films,
+tropes or relations. The code includes some basic integration tests.
+
+Also, some manual tests are covered:
+
+- [x] a trope listed in a film page is linked to the film
+- [x] a film listed in a trope page is linked to the trope:
+For example, 'AHandfulForAnEye'->'RaidersOfTheLostArk' (but not the opposite)
+- [x] a film listed in a category page inside a trope page is linked to the trope:
+for example, 'BoxOfficeBomb'->'CThroughD'->'AChineseGhostStory'
+
+### The log
 
 The output should look like this:
 ```log
@@ -81,9 +128,18 @@ The tool is verbose so you can know the progress and estimate the
 duration of the process. You will be able to see a message
 in the form `Status: {film_index}/{total} films scraped`.
 
+As result of improving the accuracy of the dataset by performing a hard-crawl of the
+tropes and sub-pages, the process can take longer and it is
+impossible to predict when the crawl will end. For this reason, a new log is included
+periodically to let you know how things are going:
+
+```
+INFO:tropescraper.use_cases.scrape_tropes_use_case:Status: 94645/inf tropes scraped. Average tropes by film: 104.3337312007639
+```
+
 Apart from this, ths output is not really interesting unless
 anything goes bad :-) and it can be ignored.
-
+ 
 
 ## Work with the original code
 

@@ -7,7 +7,6 @@ from tropescraper.interfaces.web_page_retriever_interface import WebPageRetrieve
 
 class WebPageRetriever(WebPageRetrieverInterface):
     DEFAULT_WAIT_TIME = 0.5
-
     logger = logging.getLogger(__name__)
 
     def __init__(self, wait_time_between_calls_in_seconds=DEFAULT_WAIT_TIME):

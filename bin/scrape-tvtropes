@@ -3,7 +3,7 @@
 import logging
 import sys
 
-from tropescraper.tvtropes_scraper import TVTropesScraper
+from tropescraper.use_cases.scrape_tropes_use_case import ScrapeTropesUseCase
 
 if len(sys.argv) != 2:
     file_name = "tvtropes.json"
@@ -11,7 +11,5 @@ else:
     file_name = sys.argv[1]
 
 logging.basicConfig(level=logging.INFO)
-scraper = TVTropesScraper()
-tropes = scraper.get_tropes()
-scraper.export_to_json(file_name)
-scraper.log_summary()
+scraper = ScrapeTropesUseCase(file_name=file_name)
+tropes = scraper.run()

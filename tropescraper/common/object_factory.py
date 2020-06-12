@@ -1,8 +1,10 @@
+from typing import TypeVar, Type, List, Dict
+
 from tropescraper.adaptors.file_cache import FileCache
-from tropescraper.adaptors.tvtropes_parser import TVTropesParser
+from tropescraper.adaptors.file_store import FileStore
 from tropescraper.adaptors.web_page_retriever import WebPageRetriever
 from tropescraper.interfaces.cache_interface import CacheInterface
-from tropescraper.interfaces.page_parser_interface import PageParserInterface
+from tropescraper.interfaces.tropes_store_interface import TropesStoreInterface
 from tropescraper.interfaces.web_page_retriever_interface import WebPageRetrieverInterface
 
 
@@ -10,14 +12,16 @@ class ObjectFactory(object):
     DEFAULT_IMPLEMENTATION_MAP = {
         WebPageRetrieverInterface: WebPageRetriever,
         CacheInterface: FileCache,
-        PageParserInterface: TVTropesParser
+        TropesStoreInterface: FileStore,
     }
     MOCK_IMPLEMENTATION_MAP = {}
 
     def __init__(self):
         pass
 
-    def get_instance(self, interface, *args, **kwargs):
+    T = TypeVar('T')
+
+    def get_instance(self, interface: Type[T], *args: List, **kwargs: Dict) -> T:
         if interface in self.MOCK_IMPLEMENTATION_MAP:
             return self.MOCK_IMPLEMENTATION_MAP[interface](*args, **kwargs)
         return self.DEFAULT_IMPLEMENTATION_MAP[interface](*args, **kwargs)
