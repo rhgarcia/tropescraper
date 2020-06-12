@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_fi
     long_description = readme_file.read()
 
 setup(name='tropescraper',
-      version='1.0.2',
+      version='1.1.0',
       description='A TvTropes scrapper',
       long_description=long_description,
       long_description_content_type='text/markdown',
