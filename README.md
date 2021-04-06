@@ -1,4 +1,4 @@
-[![Project status](https://travis-ci.com/raiben/tropescraper.svg?branch=master)](https://travis-ci.com/raiben/tropescraper)
+[![Project status](https://travis-ci.com/rhgarcia/tropescraper.svg?branch=master)](https://travis-ci.com/rhgarcia/tropescraper)
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![GitHub license](https://img.shields.io/github/license/raiben/tropescraper.svg)](https://github.com/raiben/tropescraper/blob/master/LICENSE)
 [![Github all releases](https://img.shields.io/github/downloads/raiben/tropescraper/total.svg)](https://GitHub.com/raiben/tropescraper/releases/)
