@@ -30,18 +30,18 @@ Try to execute
 scrape-tvtropes
 ```
 
-The script ~~can take some hours~~ can take a long time, from hours to days, 
-to finish, but don't worry, 
+The script ~~can take a few hours~~ can take a long time, from hours to days,
+to finish, but don't worry,
 it can be stopped at any moment because it relies in file cache, so
-it will not try to re-download the same page twice even in 
-different executions. You will notice because you will see 
+it will not try to re-download the same page twice even in
+different executions. You will notice because you will see
 thousands of "Cache hits" with the format:
 ```
 INFO:tropescraper.adaptors.file_cache:Cache hit for https://tvtropes.org/pmwiki/pmwiki.php/Main/RulesOfTheRoad
 ```
 
 The script will create a folder in the same directory called `scraper_cache`
-with thousand of small compressed files. 
+with thousand of small compressed files.
 
 When the script finishes, you will also see a file called `tvtropes.json`
 with a JSON content in the following format:
@@ -64,7 +64,7 @@ The first version of the script considered that:
 ["Raiders of the lost ark"](https://tvtropes.org/pmwiki/pmwiki.php/Film/RaidersOfTheLostArk)
 includes a links to tropes such as ["Animal Espionage"](https://tvtropes.org/pmwiki/pmwiki.php/Main/AnimalEspionage).
 
-It is "very" direct to build the films->tropes map and we got ~12567 films scraped with ~40 tropes on average.
+It is "very" straightforward to build the films->tropes map and we got ~12567 films scraped with ~40 tropes on average.
 
 However, we discovered that some of the most popular tropes in DBTropes were missing 
 in tropescraper, and this is because of the unstructured nature of the wiki.
