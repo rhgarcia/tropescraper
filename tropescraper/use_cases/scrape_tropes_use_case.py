@@ -154,10 +154,10 @@ class ScrapeTropesUseCase(object):
     def extract_all_tropes_in_page_recursively(self, page, trope_name, recursivity_level):
         recursivity_level -= 1
 
-        print( "Working with ", trope_name )
+        self.logger.info( "Working with ", trope_name )
         
         if page == '':
-            print( "Page is empty for ", trope_name)
+            self.logger.info( "Page is empty for ", trope_name)
             return
         
         links, films = self.parser.get_all_trope_links_and_paginations(page, trope_name)
@@ -188,9 +188,9 @@ class ScrapeTropesUseCase(object):
             if 'CircularRedirect' in full_link or 'ThisPageRedirectsToItself' in full_link:
                 return []
 
-            matches = re.match('^.*/Main/([^/]+)(/.*)?$', full_link)
+            matches = re.match('^https://tvtropes.org/pmwiki/pmwiki.php/Main/([^/]+)(/.*)?$', full_link)
             if not matches:
-                matches = re.match('^.*/pmwiki.php/([^/]+)/.*$', full_link)
+                matches = re.match('^https://tvtropes.org/pmwiki/pmwiki.php/pmwiki.php/([^/]+)/.*$', full_link)
                 if not matches:
                     self.logger.warning('Could not get the trope name in url {}'.format(full_link))
                     return
