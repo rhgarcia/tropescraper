@@ -10,6 +10,6 @@ if len(sys.argv) != 2:
 else:
     file_name = sys.argv[1]
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 scraper = ScrapeTropesUseCase(file_name=file_name)
 tropes = scraper.run()
