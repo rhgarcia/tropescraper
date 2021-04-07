@@ -154,10 +154,10 @@ class ScrapeTropesUseCase(object):
     def extract_all_tropes_in_page_recursively(self, page, trope_name, recursivity_level):
         recursivity_level -= 1
 
-        self.logger.info( "Working with ", trope_name )
+        self.logger.info( f"Working with {trope_name}" )
         
         if page == '':
-            self.logger.info( "Page is empty for ", trope_name)
+            self.logger.info( f"Page is empty for {trope_name}")
             return
         
         links, films = self.parser.get_all_trope_links_and_paginations(page, trope_name)
