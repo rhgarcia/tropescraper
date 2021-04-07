@@ -29,7 +29,7 @@ class TVTropesParser(object):
                               'SportingEvent', 'RecordedAndStandUpComedy', 'AnimatedShows', 'BroadcastLive',
                               'TelevisionMovieIndex', 'Series', 'Theatre', 'Ballet', 'Opera', 'Vaudeville',
                               'ThemeParks', 'Toys', 'FairyTale', 'FranchiseIndex', 'Legend', 'Mythology',
-                              'Analysis', 'UsefulNotes', 'Recap', 'WMG'}
+                              'Analysis', 'UsefulNotes', 'Recap', 'WMG', 'VideoExamples'}
 
     def get_films_starting_url(self):
         return self.FILM_MAIN_SEARCH
