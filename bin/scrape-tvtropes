@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import logging
+import sys
+
+from tropescraper.use_cases.scrape_tropes_use_case import ScrapeTropesUseCase
+
+if len(sys.argv) != 2:
+    file_name = "tvtropes.json"
+else:
+    file_name = sys.argv[1]
+
+logging.basicConfig(level=logging.DEBUG)
+scraper = ScrapeTropesUseCase(file_name=file_name)
+tropes = scraper.run()
